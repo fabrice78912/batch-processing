@@ -1,6 +1,9 @@
 package com.example.batch_processing.batch;
 
+<<<<<<< HEAD
 import com.example.batch_processing.service.JdbcClientWrapper;
+=======
+>>>>>>> 773af81 (first commit)
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -21,6 +24,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+<<<<<<< HEAD
+=======
+import java.time.LocalDate;
+>>>>>>> 773af81 (first commit)
 import java.util.HashMap;
 import java.util.Map;
 
@@ -157,6 +164,7 @@ public class PartitionedBalanceJobConfig {
         executor.initialize();
         return executor;
     }
+<<<<<<< HEAD
 
     // ================= TASKLET pour tests =================
     //@Bean
@@ -173,4 +181,6 @@ public class PartitionedBalanceJobConfig {
             return RepeatStatus.FINISHED;
         };
     }
+=======
+>>>>>>> 773af81 (first commit)
 }

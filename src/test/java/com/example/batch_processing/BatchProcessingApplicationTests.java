@@ -8,4 +8,11 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class BatchProcessingApplicationTests {
 
+<<<<<<< HEAD
+=======
+	@Test
+	void contextLoads() {
+	}
+
+>>>>>>> 773af81 (first commit)
 }

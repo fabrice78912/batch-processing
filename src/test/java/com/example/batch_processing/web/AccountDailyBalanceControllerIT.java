@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+<<<<<<< HEAD
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+=======
+>>>>>>> 773af81 (first commit)
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,6 +19,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+<<<<<<< HEAD
+=======
+import java.util.Map;
+>>>>>>> 773af81 (first commit)
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -33,7 +40,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test d’intégration pour AccountDailyBalanceController
  */
+<<<<<<< HEAD
 @WebMvcTest(AccountDailyBalanceController.class)
+=======
+@SpringBootTest
+@AutoConfigureMockMvc
+>>>>>>> 773af81 (first commit)
 class AccountDailyBalanceControllerIT {
 
     @Autowired
