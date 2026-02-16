@@ -3,15 +3,9 @@ package com.example.batch_processing.web;
 import com.example.batch_processing.domain.Response;
 import com.example.batch_processing.dto.AccountDailySummaryDTO;
 import com.example.batch_processing.service.AccountDailyBalanceService;
-<<<<<<< HEAD
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-=======
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import lombok.RequiredArgsConstructor;
->>>>>>> 773af81 (first commit)
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -49,11 +43,7 @@ public class AccountDailyBalanceController {
             @RequestParam(required = false) String date
     ) {
 
-<<<<<<< HEAD
         LocalDate balanceDate = (StringUtils.isNotBlank(date))
-=======
-        LocalDate balanceDate = (date != null)
->>>>>>> 773af81 (first commit)
                 ? LocalDate.parse(date)
                 : LocalDate.now().minusDays(1);
 
