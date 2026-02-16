@@ -1,0 +1,26 @@
+ACTIVE_PROFILE: dev
+
+PRIVATE_KEY: "private.key"
+PUBLIC_KEY: "public.key"
+
+#------Database informaions---
+POSTGRES_USERNAME: user
+POSTGRES_PASSWORD: letmein
+POSTGRES_HOST: localhost #172.29.0.3
+POSTGRES_PORT: 5432
+POSTGRES_DATABASE: localdb
+
+#-------Eureka server connection
+USER_NAME: admin
+PASSWORD: letmein
+
+SERVER_PORT: 8777
+JWKS_URI: http://localhost:8080/oauth2/jwks
+
+UI_APP_URL: http://localhost:3000
+
+KAFKA_SERVER_URL: http://localhost:9092
+
+
+EUREKA_HOST: localhost
+EUREKA_PORT: 8761
