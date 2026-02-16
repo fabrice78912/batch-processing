@@ -1,6 +1,5 @@
 package com.example.batch_processing.batch;
 
-import com.example.batch_processing.service.JdbcClientWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -21,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -156,21 +156,5 @@ public class PartitionedBalanceJobConfig {
         executor.setThreadNamePrefix("batch-thread-");
         executor.initialize();
         return executor;
-    }
-
-    // ================= TASKLET pour tests =================
-    //@Bean
-    public Tasklet updateBalanceTaskletForTest(Long minId, Long maxId, JdbcClientWrapper jdbcWrapper) {
-        return (contribution, chunkContext) -> {
-            Map<String, Object> params = Map.of(
-                    "minId", minId != null ? minId : 1L,
-                    "maxId", maxId != null ? maxId : 10_000_000L
-            );
-
-            jdbcWrapper.upsertDailyBalance(params);
-            jdbcWrapper.updateAccountBalance(params);
-
-            return RepeatStatus.FINISHED;
-        };
     }
 }
