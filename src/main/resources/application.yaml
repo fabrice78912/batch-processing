@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: batchprocessing
+
+  profiles:
+    active: ${ACTIVE_PROFILE:dev}
+
+  cloud:
+    discovery:
+      enabled: true
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: UserserviceHikariPool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-test-query: SELECT 1
+
+  batch:
+    jdbc:
+      initialize-schema: always
+
+server:
+  port: ${SERVER_PORT}
+#  max-http-request-header-size: 16KB
