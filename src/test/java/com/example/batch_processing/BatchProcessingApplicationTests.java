@@ -11,5 +11,4 @@ class BatchProcessingApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
