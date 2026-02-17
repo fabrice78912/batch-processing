@@ -145,7 +145,7 @@ jobs:
           echo "Docker tags = ${TAGS[*]}"
 
       # =====================================================
-      # 🐳 BUILD DOCKER IMAGES
+      # 🐳 BUILD DOCKER IMAGES (MODIFIÉ)
       # =====================================================
       - name: Build Docker images
         run: |
@@ -159,7 +159,7 @@ jobs:
           mask-password: true
 
       # =====================================================
-      # 📤 PUSH DOCKER IMAGES
+      # 📤 PUSH DOCKER IMAGES (MODIFIÉ)
       # =====================================================
       - name: Push Docker images to ECR
         run: |
