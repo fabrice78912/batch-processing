@@ -1,133 +1,168 @@
-name: 'CI - Build, Scan, Push and Trigger CD'
-'on':
+name: CI - Build, Push Docker Image
+on:
   push:
     branches:
-      - main
-      - dev
-      - rc-*
-      - feature/*
+      - 'feature/*'
+      - 'develop'
+      - 'rc*'
+      - 'main'
+    tags:
+      - 'v*'  #tag
   pull_request:
     branches:
-      - main
-      - dev
-      - rc-*
-  workflow_dispatch: null
+      - 'develop'
+      - 'rc*'
+      - 'main'
+  workflow_dispatch:
+
 permissions:
   id-token: write
-  contents: read
+  contents: write
+
 env:
-  AWS_REGION: '${{ secrets.AWS_REGION }}'
-  AWS_ACCOUNT_ID: '${{ secrets.AWS_ACCOUNT_ID }}'
-  SONAR_TOKEN: '${{ secrets.SONAR_TOKEN }}'
-  PERSONAL_ACCESS_TOKEN: '${{ secrets.PERSONAL_ACCESS_TOKEN }}'
-  REPO_DEPLOY: '${{ secrets.REPO_DEPLOY }}'
-  ECR_REGISTRY: >-
-    ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION
-    }}.amazonaws.com
-  REPO_NAME: '${{ secrets.REPO_NAME }}'
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  REPO_NAME: ${{ secrets.REPO_NAME }}
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
 jobs:
   detect-branch:
     runs-on: ubuntu-latest
     outputs:
-      is-first-push: '${{ steps.check.outputs.is_first_push }}'
+      is-first-push: ${{ steps.check.outputs.is_first_push }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Vérifier si la branche existe déjà sur remote
         id: check
-        run: >
+        run: |
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-
-          # Vérifie si la branche existe déjà sur remote
-
-          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q
-          "$BRANCH_NAME"; then
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
             echo "is_first_push=false" >> $GITHUB_OUTPUT
           else
             echo "is_first_push=true" >> $GITHUB_OUTPUT
           fi
+
   verify:
     needs: detect-branch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: temurin
+
       - name: Build and run tests
         run: mvn clean install
+
   build-push:
     needs: verify
     runs-on: ubuntu-latest
-    if: ${{ needs.detect-branch.outputs.is-first-push == 'false' || github.event_name == 'pull_request' }}
+    if: ${{ needs.detect-branch.outputs.is-first-push == 'false' || github.event_name == 'push' }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: 'arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsECRRole'
-          aws-region: '${{ env.AWS_REGION }}'
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsECRRole
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set environment tag with date
+      # ======================================================
+      # 🏷️ COMPUTE DOCKER TAGS
+      # ======================================================
+      - name: Compute Docker image tags
         run: |
-          SHA=$(echo "${GITHUB_SHA}" | cut -c1-8)
+          set -e
+          SHA=$(echo "$GITHUB_SHA" | cut -c1-8)
           DATE=$(date +%Y%m%d-%H%M%S)
 
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            BASE="${GITHUB_BASE_REF}"
-            if [[ "$BASE" == "dev" ]]; then
-              ENV="feature"
-              TAG="user-feature-${SHA}-${DATE}"
-            elif [[ "$BASE" == rc-* ]]; then
-              ENV="staging"
-              TAG="user-staging-${SHA}-${DATE}"
-            elif [[ "$BASE" == "main" ]]; then
-              ENV="prod"
-              TAG="user-prod-${SHA}-${DATE}"
-            else
-              ENV="dev"
-              TAG="user-dev-${SHA}-${DATE}"
-            fi
-          elif [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            REF="${GITHUB_REF}"
-            if [[ "$REF" == "refs/heads/dev" ]]; then
-              ENV="dev"
-              TAG="user-dev-${SHA}-${DATE}"
-            elif [[ "$REF" == refs/heads/rc-* ]]; then
-              ENV="staging"
-              TAG="user-staging-${SHA}-${DATE}"
-            elif [[ "$REF" == "refs/heads/main" ]]; then
-              ENV="prod"
-              TAG="user-prod-${SHA}-${DATE}"
-            elif [[ "$REF" == refs/heads/feature/* ]]; then
-              ENV="dev"
-              TAG="user-dev-${SHA}-${DATE}"
-            else
-              ENV="unknown"
-              TAG="user-unknown-${SHA}-${DATE}"
-            fi
-          else
-            ENV="dev"
-            TAG="user-dev-${SHA}-${DATE}"
+          TAGS=()   # 🟢 MAINTENANT: TAGS (liste)
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            echo "✅ PR detected → Docker build skipped"
+            exit 0
           fi
 
-          echo "ENV=$ENV" >> $GITHUB_ENV
-          echo "TAG=$TAG" >> $GITHUB_ENV
+          # 🔹 Push sur feature/* → tag feature
+          if [[ "$GITHUB_REF" =~ ^refs/heads/feature/ ]]; then
+            TAGS+=("feature-${DATE}-${SHA}")
 
-      - name: Build Docker image
-        run: docker build -t $ECR_REGISTRY/${{ env.REPO_NAME }}:${{ env.TAG }} .
+          # 🔹 develop → DEV
+          elif [[ "$GITHUB_REF" == "refs/heads/develop" ]]; then
+            TAGS+=("latest")          # 🆕
+            TAGS+=("dev-${DATE}-${SHA}")      # 🆕
+
+          # 🔹 Merge PR → RC → auto tag RC
+          elif [[ "$GITHUB_REF" =~ ^refs/heads/rc ]]; then
+            echo "🔎 RC branch detected"
+
+            # Vérifier merge commit
+            PARENTS=$(git rev-list --parents -n 1 HEAD)
+            NUM_PARENTS=$(echo "$PARENTS" | wc -w)
+
+            if [[ $NUM_PARENTS -le 2 ]]; then
+              echo "❌ RC doit provenir d’un merge develop → rc"
+              exit 1
+            fi
+
+            echo "✅ Merge develop → rc confirmé"
+
+            # Récupérer le dernier tag RC
+            LAST_RC=$(git tag -l "v*.*.*-rc" --sort=-v:refname | head -n1)
+
+            if [[ -z "$LAST_RC" ]]; then
+              # Premier RC
+              TAG="v1.0.0-rc"
+            else
+              # Extraire MAJOR et MINOR
+              MAJOR=$(echo "$LAST_RC" | sed -E 's/^v([0-9]+)\.([0-9]+)\.0-rc$/\1/')
+              MINOR=$(echo "$LAST_RC" | sed -E 's/^v([0-9]+)\.([0-9]+)\.0-rc$/\2/')
+
+              MINOR=$((MINOR + 1))
+              TAG="v${MAJOR}.${MINOR}.0-rc"
+            fi
+
+            echo "🏷️ Nouveau tag RC = $TAG"
+
+            TAGS+=("$TAG")
+
+            git tag "$TAG"
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$TAG"
+          fi
+          echo "TAGS=${TAGS[*]}" >> $GITHUB_ENV
+          echo "Docker tags = ${TAGS[*]}"
+
+      # =====================================================
+      # 🐳 BUILD DOCKER IMAGES (MODIFIÉ)
+      # =====================================================
+      - name: Build Docker images
+        run: |
+          for TAG in $TAGS; do
+            docker build -t $ECR_REGISTRY/${{ env.REPO_NAME }}:$TAG .
+          done
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: true
 
-      - name: Push Docker image
-        run: docker push $ECR_REGISTRY/${{ env.REPO_NAME }}:${{ env.TAG }}
+      # =====================================================
+      # 📤 PUSH DOCKER IMAGES (MODIFIÉ)
+      # =====================================================
+      - name: Push Docker images to ECR
+        run: |
+          for TAG in $TAGS; do
+            docker push $ECR_REGISTRY/${{ env.REPO_NAME }}:$TAG
+          done
