@@ -159,7 +159,7 @@ public class PartitionedBalanceJobConfig {
     }
 
     // ================= TASKLET pour tests =================
-    @Bean
+    //@Bean
     public Tasklet updateBalanceTaskletForTest(Long minId, Long maxId, JdbcClientWrapper jdbcWrapper) {
         return (contribution, chunkContext) -> {
             Map<String, Object> params = Map.of(

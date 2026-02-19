@@ -20,9 +20,9 @@ spring:
       minimum-idle: 2
       connection-test-query: SELECT 1
 
-  batch:
-    jdbc:
-      initialize-schema: always
+#  batch:
+#    jdbc:
+#      initialize-schema: always
 
 server:
   port: ${SERVER_PORT}
