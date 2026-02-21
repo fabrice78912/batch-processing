@@ -55,7 +55,7 @@ public class AccountDailyBalanceController {
                 .code(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .message("Résumé journalier récupéré avec succès")
-                .data(Map.of("accounts", result))
+                .data(Map.of("accounts", result, "page", 0))
                 .build();
 
         return ResponseEntity.ok(response);

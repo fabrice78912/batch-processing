@@ -1,6 +1,7 @@
 package com.example.batch_processing.batch;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -17,16 +18,16 @@ import java.time.format.DateTimeFormatter;
  * @version 1.0
  * @since 2026-02-16
  */
-
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class EndOfDayBatchScheduler {
 
     private final JobLauncher jobLauncher;
     private final Job endOfDayBalanceJobPartitioned;
 
     // ================= Scheduler =================
-    @Scheduled(cron = "0 57 12 * * *", zone = "America/Toronto")
+    @Scheduled(cron = "0 55 14 * * *", zone = "America/Toronto")
     public void runEndOfDayBatch() {
         try {
             // Ajouter un paramètre unique pour chaque exécution

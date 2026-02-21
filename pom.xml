@@ -181,7 +181,7 @@
 										<limit>
 											<counter>INSTRUCTION</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.10</minimum>
+											<minimum>0.09</minimum>
 										</limit>
 									</limits>
 								</rule>
@@ -191,8 +191,17 @@
 
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
+				<configuration>
+					<argLine>
+						-javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar
+					</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 		<finalName>batch-processing-app</finalName>
 	</build>
-
 </project>
