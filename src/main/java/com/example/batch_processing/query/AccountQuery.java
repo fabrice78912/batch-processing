@@ -15,7 +15,7 @@ public class AccountQuery {
 
     public static final String SELECT_DAILY_SUMMARY =
             """
-            SELECT 
+            SELECT
                 a.id AS account_id,
                 a.customer_name,
                 a.balance AS current_balance,

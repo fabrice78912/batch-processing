@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 public class EndOfDayBatchScheduler {
 
     private final JobLauncher jobLauncher;
-    private final Job endOfDayBalanceJobPartitioned; // injecte ton Job Partitionné
+    private final Job endOfDayBalanceJobPartitioned;
 
     // ================= Scheduler =================
     @Scheduled(cron = "0 57 12 * * *", zone = "America/Toronto")
